@@ -123,7 +123,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
   };
 
   const customList = (title: React.ReactNode, items: PresetObject[], identifier: string) => (
-    <Card className='rounded-xl bg-neutral-800'>
+    <Card className='!rounded-xl !bg-neutral-800'>
       <CardHeader
         className='transfer-list-header'
         sx={{ px: 2, py: 1 }}
@@ -143,14 +143,14 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
         title={title}
         subheader={`${numberOfChecked(items)}/${items.length} selected`}
       />
-      <Divider className='bg-neutral-800'/>
+      <Divider className='!bg-neutral-800'/>
       <List
         sx={{
           width: 400,
           height: 450,
           overflow: 'auto',
         }}
-        className='bg-neutral-900 text-gray-100'
+        className='!bg-neutral-900 !text-gray-100'
         dense
         component="div"
         role="list"
@@ -213,10 +213,10 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
       </Grid>
       <Grid item>{customList('Additional addons', right, 'right')}</Grid>
     </Grid>
-    <div className='flex flex-col w-max'>
+    <div className='!flex !flex-col !w-max'>
       <TextField
           id='preset-name'
-          className='text-gray-300'
+          className='!text-gray-300'
           label="Enter the name of the preset"
           variant="outlined"
           color='primary'
@@ -224,7 +224,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
         />
       <Button
           sx={{ my: 0.5 }}
-          className='font-bold text-lg'
+          className='!font-bold text-lg'
           variant="outlined"
           size="large"
           onClick={() => createHtmlPreset(left)}
