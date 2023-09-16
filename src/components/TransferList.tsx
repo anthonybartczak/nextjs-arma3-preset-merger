@@ -11,6 +11,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import { htmlHeader, htmlFooter } from '../structures/HtmlContainer';
+import TextField from '@mui/material/TextField';
 
 function not(a: readonly PresetObject[], b: readonly PresetObject[]) {
   return a.filter((value) => b.indexOf(value) === -1);
@@ -25,6 +27,7 @@ function union(a: readonly PresetObject[], b: readonly PresetObject[]) {
 }
 
 interface PresetObject {
+  id: string;
   displayName: string;
   addonId: string;
   source: string;
@@ -36,21 +39,6 @@ interface SelectAllTransferListProps {
   secondaryContent: PresetObject[];
 }
 
-const testObject = [
-  {
-    "displayName": "CBA_A3",
-    "addonId": "450814997",
-    "source": "Steam",
-    "link": "https://steamcommunity.com/sharedfiles/filedetails/?id=450814997"
-  },
-  {
-    "displayName": "RKSL Studios - Attachments v3.02",
-    "addonId": "1661066023",
-    "source": "Steam",
-    "link": "https://steamcommunity.com/sharedfiles/filedetails/?id=1661066023"
-  },
-]
-
 export default function SelectAllTransferList({primaryContent, secondaryContent}: SelectAllTransferListProps) {
 
   const [checked, setChecked] = React.useState<PresetObject[]>([]);
@@ -61,10 +49,6 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
     setLeft(primaryContent);
     setRight(secondaryContent);
   }, [primaryContent, secondaryContent]);
-
-
-  console.log(primaryContent);
-  console.log(left);
 
   const leftChecked = intersection(checked, left);
   const rightChecked = intersection(checked, right);
@@ -105,7 +89,40 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
     setChecked(not(checked, rightChecked));
   };
 
-  const customList = (title: React.ReactNode, items: PresetObject[]) => (
+  const createHtmlPreset = (addonList: PresetObject[]) => {
+
+    const presetElement = document.getElementById('preset-name') as HTMLInputElement;
+    let presetName = presetElement.value;
+
+    if (presetName === '') { presetName = 'New preset' }
+
+    let htmlPreset = htmlHeader(presetName);
+
+    addonList.forEach((addon) => {
+      htmlPreset += `
+      <tr data-type="ModContainer">
+        <td data-type="DisplayName">${addon["displayName"]}</td>
+        <td>
+          <span class="from-steam">${addon["source"]}</span>
+        </td>
+        <td>
+          <a href="${addon["link"]}" data-type="Link">${addon["link"]}</a>
+        </td>
+      </tr>`
+    });
+
+    htmlPreset += htmlFooter;
+    htmlPreset = htmlPreset.replaceAll("&", "&amp;");
+
+    const blob = new Blob([htmlPreset], { type: 'text/html' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${presetName}.html`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const customList = (title: React.ReactNode, items: PresetObject[], identifier: string) => (
     <Card className='rounded-xl bg-neutral-800'>
       <CardHeader
         className='transfer-list-header'
@@ -143,7 +160,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
 
           return (
             <ListItem
-              key={value["addonId"]}
+              key={value["id"]}
               role="listitem"
               button
               onClick={handleToggle(value)}
@@ -167,8 +184,9 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
   );
 
   return (
+    <>
     <Grid container spacing={2} justifyContent="center" alignItems="center">
-      <Grid item>{customList('Choices', left)}</Grid>
+      <Grid item>{customList('Main addon preset', left, 'left')}</Grid>
       <Grid item>
         <Grid container direction="column" alignItems="center">
           <Button
@@ -193,7 +211,27 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
           </Button>
         </Grid>
       </Grid>
-      <Grid item>{customList('Chosen', right)}</Grid>
+      <Grid item>{customList('Additional addons', right, 'right')}</Grid>
     </Grid>
+    <div className='flex flex-col w-max'>
+      <TextField
+          id='preset-name'
+          className='text-gray-300'
+          label="Enter the name of the preset"
+          variant="outlined"
+          color='primary'
+          fullWidth
+        />
+      <Button
+          sx={{ my: 0.5 }}
+          className='font-bold text-lg'
+          variant="outlined"
+          size="large"
+          onClick={() => createHtmlPreset(left)}
+          aria-label="move selected right"
+      >Genearate the new addon preset
+      </Button>
+    </div>
+  </>
   );
 }
