@@ -12,27 +12,64 @@ import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 
-function not(a: readonly number[], b: readonly number[]) {
+function not(a: readonly PresetObject[], b: readonly PresetObject[]) {
   return a.filter((value) => b.indexOf(value) === -1);
 }
 
-function intersection(a: readonly number[], b: readonly number[]) {
+function intersection(a: readonly PresetObject[], b: readonly PresetObject[]) {
   return a.filter((value) => b.indexOf(value) !== -1);
 }
 
-function union(a: readonly number[], b: readonly number[]) {
+function union(a: readonly PresetObject[], b: readonly PresetObject[]) {
   return [...a, ...not(b, a)];
 }
 
-export default function SelectAllTransferList() {
-  const [checked, setChecked] = React.useState<readonly number[]>([]);
-  const [left, setLeft] = React.useState<readonly number[]>([0, 1, 2, 3]);
-  const [right, setRight] = React.useState<readonly number[]>([4, 5, 6, 7]);
+interface PresetObject {
+  displayName: string;
+  addonId: string;
+  source: string;
+  link: string;
+}
+
+interface SelectAllTransferListProps {
+  primaryContent: PresetObject[];
+  secondaryContent: PresetObject[];
+}
+
+const testObject = [
+  {
+    "displayName": "CBA_A3",
+    "addonId": "450814997",
+    "source": "Steam",
+    "link": "https://steamcommunity.com/sharedfiles/filedetails/?id=450814997"
+  },
+  {
+    "displayName": "RKSL Studios - Attachments v3.02",
+    "addonId": "1661066023",
+    "source": "Steam",
+    "link": "https://steamcommunity.com/sharedfiles/filedetails/?id=1661066023"
+  },
+]
+
+export default function SelectAllTransferList({primaryContent, secondaryContent}: SelectAllTransferListProps) {
+
+  const [checked, setChecked] = React.useState<PresetObject[]>([]);
+  const [left, setLeft] = React.useState<PresetObject[]>(primaryContent);
+  const [right, setRight] = React.useState<PresetObject[]>(secondaryContent);
+
+  React.useEffect(() => {
+    setLeft(primaryContent);
+    setRight(secondaryContent);
+  }, [primaryContent, secondaryContent]);
+
+
+  console.log(primaryContent);
+  console.log(left);
 
   const leftChecked = intersection(checked, left);
   const rightChecked = intersection(checked, right);
 
-  const handleToggle = (value: number) => () => {
+  const handleToggle = (value: any) => () => {
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
 
@@ -45,10 +82,10 @@ export default function SelectAllTransferList() {
     setChecked(newChecked);
   };
 
-  const numberOfChecked = (items: readonly number[]) =>
+  const numberOfChecked = (items: PresetObject[]) =>
     intersection(checked, items).length;
 
-  const handleToggleAll = (items: readonly number[]) => () => {
+  const handleToggleAll = (items: PresetObject[]) => () => {
     if (numberOfChecked(items) === items.length) {
       setChecked(not(checked, items));
     } else {
@@ -68,8 +105,8 @@ export default function SelectAllTransferList() {
     setChecked(not(checked, rightChecked));
   };
 
-  const customList = (title: React.ReactNode, items: readonly number[]) => (
-    <Card>
+  const customList = (title: React.ReactNode, items: PresetObject[]) => (
+    <Card className='rounded-xl bg-neutral-800'>
       <CardHeader
         className='transfer-list-header'
         sx={{ px: 2, py: 1 }}
@@ -89,24 +126,24 @@ export default function SelectAllTransferList() {
         title={title}
         subheader={`${numberOfChecked(items)}/${items.length} selected`}
       />
-      <Divider />
+      <Divider className='bg-neutral-800'/>
       <List
         sx={{
-          width: 200,
-          height: 230,
-          bgcolor: 'background.paper',
+          width: 400,
+          height: 450,
           overflow: 'auto',
         }}
+        className='bg-neutral-900 text-gray-100'
         dense
         component="div"
         role="list"
       >
-        {items.map((value: number) => {
-          const labelId = `transfer-list-all-item-${value}-label`;
+        {items.map((value) => {
+          const labelId = `transfer-list-all-item-${value["addonId"]}-label`;
 
           return (
             <ListItem
-              key={value}
+              key={value["addonId"]}
               role="listitem"
               button
               onClick={handleToggle(value)}
@@ -121,7 +158,7 @@ export default function SelectAllTransferList() {
                   }}
                 />
               </ListItemIcon>
-              <ListItemText id={labelId} primary={`List item ${value + 1}`} />
+              <ListItemText id={labelId} primary={value["displayName"]} />
             </ListItem>
           );
         })}

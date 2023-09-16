@@ -5,9 +5,14 @@
 
 body {
   background-color: #2C2C2C;
-  color: #FFFFFF;
+  @apply text-gray-100;
 }
 
 .transfer-list-header {
   background-color: #252525;
+  @apply text-gray-100;
+}
+
+.MuiCardHeader-subheader {
+  @apply text-gray-100
 }
