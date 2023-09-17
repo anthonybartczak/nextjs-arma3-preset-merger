@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Chakra_Petch } from 'next/font/google'
 import ThemeProvider from './providers/NextThemeProvider'
+import PiwikProWrapper from './providers/PiwikProProvider'
 
 const chakra_petch = Chakra_Petch({weight: "400", subsets: ["latin"]})
 
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={chakra_petch.className}>
+      <PiwikProWrapper>
         <ThemeProvider>
             {children}
         </ThemeProvider>
+      </PiwikProWrapper>
       </body>
     </html>
   )
