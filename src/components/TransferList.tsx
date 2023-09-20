@@ -239,7 +239,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
           return (
             <ListItem
               id={value["addonId"] ? value["addonId"] : ''}
-              className={value["isDuplicate"] ? 'bg-red-950' : ''}
+              className={value["isDuplicate"] ? '!bg-red-950' : ''}
               key={value["id"]}
               role="listitem"
               button
