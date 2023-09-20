@@ -16,3 +16,12 @@ body {
 .MuiCardHeader-subheader {
   @apply !text-gray-100
 }
+
+.upload-card {
+  background-color: #252525;
+  @apply rounded-md
+}
+
+/* .MuiFormControl-root {
+  @apply !ring-red-600
+} */

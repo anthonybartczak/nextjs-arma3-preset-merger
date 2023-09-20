@@ -2,10 +2,17 @@
 import ThemeProvider from '@mui/material/styles/ThemeProvider'
 import createTheme from '@mui/material/styles/createTheme'
 
+
+
 const theme = createTheme({
     typography: {
         fontFamily: 'inherit',
-    }
+    },
+    palette: {
+        primary: {
+          main: '#cfcfcf',
+        },
+      },
 });
 
 

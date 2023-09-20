@@ -20,6 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={chakra_petch.className}>
+      <div className='text-gray-300 text-sm absolute top-0 left-0 p-3 m-2 rounded-md whitespace-nowrap bg-neutral-700'>
+        <p>Made with ❤️ for </p><a href="https://forum.armacoopcorps.pl/" className=''>Arma Coop Corps</a>
+      </div>
       <PiwikProWrapper>
         <ThemeProvider>
             {children}

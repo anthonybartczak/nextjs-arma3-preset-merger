@@ -6,6 +6,7 @@ import UploadFile from '@/components/UploadFile';
 import { parse } from 'node-html-parser';
 import { v4 as uuidv4 } from 'uuid';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { Divider } from '@mui/material';
 
 const parseHTMLToJSON = (html: string) => {
   const doc = parse(html);
@@ -14,19 +15,13 @@ const parseHTMLToJSON = (html: string) => {
   return Array.from(rows).map(row => {
 
     let source = 'Local'
-    let protocol = 'https://'
     let link = '';
     let addonId = row.querySelector('[data-type="DisplayName"]')!.textContent!.trim();
 
     if (row.querySelector('.from-steam')) {
       source = row.querySelector('.from-steam')!.textContent!.trim();
       link = row.querySelector('[data-type="Link"]')!.getAttribute('href')!.trim()
-
-      if (row.querySelector('[data-type="Link"]')!.textContent!.trim().startsWith("http://")) {
-        protocol = 'http://';
-      }
-
-      addonId = row.querySelector('[data-type="Link"]')!.textContent!.trim().split(`${protocol}steamcommunity.com/sharedfiles/filedetails/?id=`)[1]
+      addonId = new URL(link).searchParams.get("id")!
     }
 
     const addonObject = {
@@ -48,22 +43,23 @@ export default function Home() {
   const [secondaryHtmlContent, setSecondaryHtmlContent] = useState('');
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center space-y-12">
+    <main className="flex min-h-screen flex-col items-center justify-center space-y-3">
       <div>
         <h1 className='text-4xl'>Arma 3 HTML preset merger</h1>
       </div>
-      <div className='flex space-x-24'>
-        <div>
+      <div className='flex flex-col p-5 space-y-3 justify-center bg-slate-900 upload-card'>
+        <div className='flex flex-col'>
           <div className="flex flex-row content-center mb-2">
             <InfoOutlinedIcon className="mr-2"/>
-            <p className="block text-gray-200 text-sm font-thin">Upload your primary preset</p>
+            <p className="block text-gray-200 text-sm font-thin">Upload your main preset</p>
           </div>
           <UploadFile onFileUpload={setPrimaryHtmlContent}/>
         </div>
-        <div>
+        <Divider className='!bg-neutral-600'/>
+        <div className='flex flex-col'>
           <div className='flex flex-row content-center mb-2'>
             <InfoOutlinedIcon className="mr-2"/>
-            <p className="block text-gray-200 text-sm font-thin">Upload your secondary preset</p>
+            <p className="block text-gray-200 text-sm font-thin">Upload your additional preset</p>
           </div>
           <UploadFile onFileUpload={setSecondaryHtmlContent}/>
         </div>

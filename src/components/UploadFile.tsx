@@ -25,7 +25,7 @@ const UploadFile = ({ onFileUpload }:any): JSX.Element => {
 
   return (
     <div>
-      <input type="file" accept=".html" onChange={handleFileChange} />
+      <input className="max-w-sm" title="html file upload" type="file" accept=".html" onChange={handleFileChange} />
     </div>
   );
 }

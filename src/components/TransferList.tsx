@@ -13,6 +13,7 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import { htmlHeader, htmlFooter } from '../structures/HtmlContainer';
 import TextField from '@mui/material/TextField';
+import Badge from '@mui/material/Badge';
 
 function not(a: readonly PresetObject[], b: readonly PresetObject[]) {
   return a.filter((value) => b.indexOf(value) === -1);
@@ -26,26 +27,7 @@ function union(a: readonly PresetObject[], b: readonly PresetObject[]) {
   return [...a, ...not(b, a)];
 }
 
-function markDuplicates(arr1: Array<PresetObject>, arr2: Array<PresetObject>) {
-  // Create a Set from the addonIds of the second array
-  const addonIdsInArr2 = new Set(arr2.map(obj => obj.addonId));
 
-  // Mark duplicates in the first array
-  for (const obj of arr1) {
-      if (addonIdsInArr2.has(obj.addonId)) {
-          obj.isDuplicate = true;
-      }
-  }
-
-  // Now, let's mark duplicates in the second array using addonIds of the first array
-  const addonIdsInArr1 = new Set(arr1.map(obj => obj.addonId));
-
-  for (const obj of arr2) {
-      if (addonIdsInArr1.has(obj.addonId)) {
-          obj.isDuplicate = true;
-      }
-  }
-}
 
 interface PresetObject {
   id: string;
@@ -66,13 +48,16 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
   const [checked, setChecked] = React.useState<PresetObject[]>([]);
   const [left, setLeft] = React.useState<PresetObject[]>(primaryContent);
   const [right, setRight] = React.useState<PresetObject[]>(secondaryContent);
-
-  console.log(left)
+  const [duplicates, setDuplicates] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     setLeft(primaryContent);
     setRight(secondaryContent);
+
   }, [primaryContent, secondaryContent]);
+
+  console.log(left, right)
+  console.log(duplicates)
 
   const leftChecked = intersection(checked, left);
   const rightChecked = intersection(checked, right);
@@ -90,6 +75,30 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
     setChecked(newChecked);
   };
 
+  function markDuplicates(arr1: Array<PresetObject>, arr2: Array<PresetObject>) {
+    // Create a Set from the addonIds of the second array
+    const addonIdsInArr2 = new Set(arr2.map(obj => obj.addonId));
+    const duplicateArray = [];
+
+    // Mark duplicates in the first array
+    for (const obj of arr1) {
+        if (addonIdsInArr2.has(obj.addonId)) {
+            obj.isDuplicate = true;
+            duplicateArray?.push(obj.addonId);
+        }
+    }
+
+    // Now, let's mark duplicates in the second array using addonIds of the first array
+    const addonIdsInArr1 = new Set(arr1.map(obj => obj.addonId));
+
+    for (const obj of arr2) {
+        if (addonIdsInArr1.has(obj.addonId)) {
+            obj.isDuplicate = true;
+        }
+    }
+    setDuplicates(duplicateArray);
+  }
+
   const numberOfChecked = (items: PresetObject[]) =>
     intersection(checked, items).length;
 
@@ -105,6 +114,23 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
     setRight(right.concat(leftChecked));
     setLeft(not(left, leftChecked));
     setChecked(not(checked, leftChecked));
+  };
+
+  const deleteSelected = (array: Array<PresetObject>, deleteKeys: Array<PresetObject>, label: string) => {
+    let deleteList = deleteKeys.map(obj => obj.id);
+    array = array.filter(obj => !deleteList.includes(obj.id));
+
+    if (label === 'left') {
+      setLeft(array);
+    } else {
+      setRight(array);
+    }
+
+    if (duplicates.length > 0) {
+      markDuplicates(left, right);
+      //console.log(duplicates)
+    }
+
   };
 
   const handleCheckedLeft = () => {
@@ -153,8 +179,9 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
     URL.revokeObjectURL(link.href);
   };
 
-  const customList = (title: React.ReactNode, items: PresetObject[], identifier: string) => (
+  const customList = (title: React.ReactNode, items: PresetObject[], checkedItems: Array<PresetObject>, label: string) => (
     <Card className='!rounded-xl !bg-neutral-800'>
+      <div className='flex place-items-center'>
       <CardHeader
         className='transfer-list-header'
         sx={{ px: 2, py: 1 }}
@@ -174,6 +201,17 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
         title={title}
         subheader={`${numberOfChecked(items)}/${items.length} selected`}
       />
+      <Button
+        className='max-w-1/2 max-h-fit'
+        variant="outlined"
+        size="small"
+        onClick={() => deleteSelected(items, checkedItems, label)}
+        disabled={items.length === 0}
+        aria-label="move selected right"
+      >
+      Delete selected
+      </Button>
+      </div>
       <Divider className='!bg-neutral-800'/>
       <List
         sx={{
@@ -191,8 +229,8 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
 
           return (
             <ListItem
-              id={value["addonId"]}
-              className={value["isDuplicate"] ? 'bg-red-500' : ''}
+              id={value["addonId"] ? value["addonId"] : ''}
+              className={value["isDuplicate"] ? 'bg-red-950' : ''}
               key={value["id"]}
               role="listitem"
               button
@@ -219,19 +257,23 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
   return (
     <>
     <Grid container spacing={2} justifyContent="center" alignItems="center">
-      <Grid item>{customList('Main addon preset', left, 'left')}</Grid>
+      <Grid item>{customList('Main addon preset', left, leftChecked, "left")}
+      </Grid>
       <Grid item>
         <Grid container direction="column" alignItems="center">
-          <Button
-            sx={{ my: 0.5 }}
-            variant="outlined"
-            size="small"
-            onClick={() => markDuplicates(left, right)}
-            disabled={left.length === 0 || right.length === 0}
-            aria-label="move selected right"
-          >
-            DIF
-          </Button>
+          <Badge badgeContent={duplicates.length} color="info">
+            <Button
+              sx={{ my: 0.5 }}
+              className=''
+              variant="outlined"
+              size="small"
+              onClick={() => markDuplicates(left, right)}
+              disabled={left.length === 0 || right.length === 0}
+              aria-label="move selected right"
+            >
+              Duplicates
+            </Button>
+          </Badge>
           <Button
             sx={{ my: 0.5 }}
             variant="outlined"
@@ -254,7 +296,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
           </Button>
         </Grid>
       </Grid>
-      <Grid item>{customList('Additional addons', right, 'right')}</Grid>
+      <Grid item>{customList('Additional addons', right, rightChecked, "right")}</Grid>
     </Grid>
     <div className='!flex !flex-col !w-max'>
       <TextField
@@ -263,6 +305,8 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
           label="Enter the name of the preset"
           variant="outlined"
           color='primary'
+          disabled={left.length === 0 || right.length === 0}
+          placeholder='New preset name'
           fullWidth
         />
       <Button
@@ -272,7 +316,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
           size="large"
           onClick={() => createHtmlPreset(left)}
           aria-label="move selected right"
-      >Genearate the new addon preset
+      >Genearate a new addon preset
       </Button>
     </div>
   </>
