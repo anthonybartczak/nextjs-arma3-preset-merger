@@ -12,13 +12,33 @@ const parseHTMLToJSON = (html: string) => {
   const rows = doc.querySelectorAll('.mod-list tr[data-type="ModContainer"]');
 
   return Array.from(rows).map(row => {
-    return {
+
+    let source = 'Local'
+    let protocol = 'https://'
+    let link = '';
+    let addonId = row.querySelector('[data-type="DisplayName"]')!.textContent!.trim();
+
+    if (row.querySelector('.from-steam')) {
+      source = row.querySelector('.from-steam')!.textContent!.trim();
+      link = row.querySelector('[data-type="Link"]')!.getAttribute('href')!.trim()
+
+      if (row.querySelector('[data-type="Link"]')!.textContent!.trim().startsWith("http://")) {
+        protocol = 'http://';
+      }
+
+      addonId = row.querySelector('[data-type="Link"]')!.textContent!.trim().split(`${protocol}steamcommunity.com/sharedfiles/filedetails/?id=`)[1]
+    }
+
+    const addonObject = {
       id: uuidv4(),
+      isDuplicate: false,
       displayName: row.querySelector('[data-type="DisplayName"]')!.textContent!.trim(),
-      addonId: row.querySelector('[data-type="Link"]')!.textContent!.trim().split("https://steamcommunity.com/sharedfiles/filedetails/?id=")[1],
-      source: row.querySelector('.from-steam')!.textContent!.trim(),
-      link: row.querySelector('[data-type="Link"]')!.getAttribute('href')!.trim()
-    };
+      addonId: addonId,
+      source: source,
+      link: link === '' ? undefined : link
+    }
+
+    return addonObject
   });
 };
 

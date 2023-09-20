@@ -26,12 +26,34 @@ function union(a: readonly PresetObject[], b: readonly PresetObject[]) {
   return [...a, ...not(b, a)];
 }
 
+function markDuplicates(arr1: Array<PresetObject>, arr2: Array<PresetObject>) {
+  // Create a Set from the addonIds of the second array
+  const addonIdsInArr2 = new Set(arr2.map(obj => obj.addonId));
+
+  // Mark duplicates in the first array
+  for (const obj of arr1) {
+      if (addonIdsInArr2.has(obj.addonId)) {
+          obj.isDuplicate = true;
+      }
+  }
+
+  // Now, let's mark duplicates in the second array using addonIds of the first array
+  const addonIdsInArr1 = new Set(arr1.map(obj => obj.addonId));
+
+  for (const obj of arr2) {
+      if (addonIdsInArr1.has(obj.addonId)) {
+          obj.isDuplicate = true;
+      }
+  }
+}
+
 interface PresetObject {
   id: string;
+  isDuplicate: boolean;
   displayName: string;
   addonId: string;
   source: string;
-  link: string;
+  link: string | undefined;
 }
 
 interface SelectAllTransferListProps {
@@ -44,6 +66,8 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
   const [checked, setChecked] = React.useState<PresetObject[]>([]);
   const [left, setLeft] = React.useState<PresetObject[]>(primaryContent);
   const [right, setRight] = React.useState<PresetObject[]>(secondaryContent);
+
+  console.log(left)
 
   React.useEffect(() => {
     setLeft(primaryContent);
@@ -99,14 +123,21 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
     let htmlPreset = htmlHeader(presetName);
 
     addonList.forEach((addon) => {
+
+      let link = `<a href="${addon["link"]}" data-type="Link">${addon["link"]}</a>`;
+
+      if (addon["source"] === 'Local') {
+        link = `<span class="whups" data-type="Link" data-meta="local:${addon["displayName"]}|@${addon["displayName"]}|" />`
+      }
+
       htmlPreset += `
       <tr data-type="ModContainer">
         <td data-type="DisplayName">${addon["displayName"]}</td>
         <td>
-          <span class="from-steam">${addon["source"]}</span>
+          <span class="from-${addon["source"].toLowerCase()}">${addon["source"]}</span>
         </td>
         <td>
-          <a href="${addon["link"]}" data-type="Link">${addon["link"]}</a>
+          ${link}
         </td>
       </tr>`
     });
@@ -160,6 +191,8 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
 
           return (
             <ListItem
+              id={value["addonId"]}
+              className={value["isDuplicate"] ? 'bg-red-500' : ''}
               key={value["id"]}
               role="listitem"
               button
@@ -189,6 +222,16 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
       <Grid item>{customList('Main addon preset', left, 'left')}</Grid>
       <Grid item>
         <Grid container direction="column" alignItems="center">
+          <Button
+            sx={{ my: 0.5 }}
+            variant="outlined"
+            size="small"
+            onClick={() => markDuplicates(left, right)}
+            disabled={left.length === 0 || right.length === 0}
+            aria-label="move selected right"
+          >
+            DIF
+          </Button>
           <Button
             sx={{ my: 0.5 }}
             variant="outlined"
