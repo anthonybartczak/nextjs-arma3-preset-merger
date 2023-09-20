@@ -49,6 +49,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
   const [left, setLeft] = React.useState<PresetObject[]>(primaryContent);
   const [right, setRight] = React.useState<PresetObject[]>(secondaryContent);
   const [duplicates, setDuplicates] = React.useState<string[]>([]);
+  const [shouldMarkDuplicates, setShouldMarkDuplicates] = React.useState(false);
 
   React.useEffect(() => {
     setLeft(primaryContent);
@@ -56,8 +57,12 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
 
   }, [primaryContent, secondaryContent]);
 
-  console.log(left, right)
-  console.log(duplicates)
+  React.useEffect(() => {
+    if (shouldMarkDuplicates) {
+      markDuplicates(left, right);
+      setShouldMarkDuplicates(false); // Reset the flag
+    }
+  }, [shouldMarkDuplicates, left, right, duplicates]);
 
   const leftChecked = intersection(checked, left);
   const rightChecked = intersection(checked, right);
@@ -76,28 +81,33 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
   };
 
   function markDuplicates(arr1: Array<PresetObject>, arr2: Array<PresetObject>) {
-    // Create a Set from the addonIds of the second array
     const addonIdsInArr2 = new Set(arr2.map(obj => obj.addonId));
-    const duplicateArray = [];
+    const duplicateArray: string[] = [];
 
-    // Mark duplicates in the first array
-    for (const obj of arr1) {
-        if (addonIdsInArr2.has(obj.addonId)) {
-            obj.isDuplicate = true;
-            duplicateArray?.push(obj.addonId);
-        }
-    }
+    // Create a new array for arr1 with updated objects
+    const newArr1 = arr1.map(obj => {
+      if (addonIdsInArr2.has(obj.addonId)) {
+        duplicateArray.push(obj.addonId);
+        return { ...obj, isDuplicate: true };
+      }
+      return { ...obj, isDuplicate: false }; // Reset isDuplicate
+    });
 
-    // Now, let's mark duplicates in the second array using addonIds of the first array
     const addonIdsInArr1 = new Set(arr1.map(obj => obj.addonId));
 
-    for (const obj of arr2) {
-        if (addonIdsInArr1.has(obj.addonId)) {
-            obj.isDuplicate = true;
-        }
-    }
+    // Create a new array for arr2 with updated objects
+    const newArr2 = arr2.map(obj => {
+      if (addonIdsInArr1.has(obj.addonId)) {
+        return { ...obj, isDuplicate: true };
+      }
+      return { ...obj, isDuplicate: false }; // Reset isDuplicate
+    });
+
     setDuplicates(duplicateArray);
+    setLeft(newArr1);
+    setRight(newArr2);
   }
+
 
   const numberOfChecked = (items: PresetObject[]) =>
     intersection(checked, items).length;
@@ -127,8 +137,7 @@ export default function SelectAllTransferList({primaryContent, secondaryContent}
     }
 
     if (duplicates.length > 0) {
-      markDuplicates(left, right);
-      //console.log(duplicates)
+      setShouldMarkDuplicates(true);
     }
 
   };
