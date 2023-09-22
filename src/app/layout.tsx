@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className={chakra_petch.className}>
       <div className='absolute top-0 left-0 whitespace-nowrap'>
         <div className='text-gray-300 text-sm p-3 m-2 rounded-md bg-neutral-700'>
-          <p>Made with ❤️ for </p><a href="https://forum.armacoopcorps.pl/" className=''>Arma Coop Corps</a>
+          <p>Made with ❤️ for </p><a href="https://www.reddit.com/r/arma/" className=''>the Arma community</a>
         </div>
         <div className='text-gray-300 text-sm p-3 m-2 rounded-md bg-neutral-700'>
           <p>Need help?</p><p></p><a href="https://discord.gg/BnzCCK6c" className=''>canadian6199 🫡</a>
